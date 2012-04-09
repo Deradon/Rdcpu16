@@ -2,18 +2,15 @@ require 'spec_helper.rb'
 
 describe DCPU16::Memory do
   its(:length) { should == 0x10000 }
-  specify { subject.read(0).value.should == 0 }
 
-  describe "#write" do
-    pending
+  describe "#read" do
+    specify { subject.read(0).should be_a_kind_of(DCPU16::Word) }
+  end
+
+
+  specify "#write" do
+    subject.write(0x1000, 42)
+    subject.read(0x1000).value.should == 42
   end
 end
-
-#describe DCPU16::Memory::Word do
-#  let(:memory) { DCPU16::Memory.new }
-
-#  specify do
-#    DCPU16::Memory::Word.new(2, memory, 0).should be_a_kind_of(DCPU16::Memory::Word)
-#  end
-#end
 

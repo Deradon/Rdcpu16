@@ -2,7 +2,6 @@ require 'spec_helper.rb'
 
 describe DCPU16::Instructions do
   let(:cpu) { DCPU16::CPU.new }
-  subject { DCPU16::CPU.new } # HACK
 
   context "when value is between 0x00 and 0x07" do
     specify { DCPU16::Operand.new(cpu, 0x0).should == cpu.A }

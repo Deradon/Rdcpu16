@@ -1,3 +1,5 @@
+require 'dcpu16/word'
+
 module DCPU16
   class Memory < Array
     SIZE = 0x10000
@@ -12,7 +14,7 @@ module DCPU16
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
 
-      Word.new(self[offset], self, offset)
+      DCPU16::Word.new(self[offset], self, offset)
     end
 
     def write(offset, value)
@@ -32,25 +34,6 @@ module DCPU16
 
     def []=(key, value)
       super(key, value)
-    end
-
-    # DOC
-    class Word
-      def initialize(value, memory = nil, offset = nil)
-        @value  = value
-        @memory = memory
-        @offset = offset
-      end
-
-      def value
-        @value
-      end
-      alias_method :read, :value
-
-      def write(value)
-        @value = value
-        @memory.write(@offset, value)
-      end
     end
   end
 end
