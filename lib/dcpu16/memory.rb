@@ -2,14 +2,14 @@ require 'dcpu16/word'
 require "observer"
 
 module DCPU16
-  class Memory < Array
+  class Memory# < Array
     include Observable
 
     SIZE = 0x10000
     DEFAULT_VALUE = 0x0
 
     def initialize(default = [])
-      super(SIZE, DEFAULT_VALUE)
+      @memory = Array.new(SIZE, DEFAULT_VALUE)
       default.each_with_index { |word, offset| write(offset, word) }
     end
 
@@ -17,19 +17,23 @@ module DCPU16
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
 
-      DCPU16::Word.new(self[offset], self, offset)
+      DCPU16::Word.new(@memory[offset], self, offset)
     end
 
     def write(offset, value)
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
 
-      self[offset] = value
+      @memory[offset] = value
       changed
       notify_observers(offset, value)
     end
 
     def reset
+    end
+
+    def length
+      @memory.length
     end
 
     private
