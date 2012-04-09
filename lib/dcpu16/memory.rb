@@ -29,6 +29,8 @@ module DCPU16
       offset = offset.value if offset.respond_to? :value
 
       @memory[offset] = value
+
+      # Notify observers
       changed
       notify_observers(offset, value)
     end
@@ -40,13 +42,12 @@ module DCPU16
       @memory.length
     end
 
-    private
     def [](key)
-      super(key)
+      read(key)
     end
 
     def []=(key, value)
-      super(key, value)
+      write(key, value)
     end
   end
 end

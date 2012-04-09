@@ -13,6 +13,7 @@ require "observer"
 module DCPU16
   class CPU
     include DCPU16::Debug
+    include DCPU16::Operand
     include DCPU16::Instructions
     include Observable
 
@@ -85,7 +86,7 @@ module DCPU16
     end
 
     # Perform a single step
-    # TODO: Refacor if/else/if/else ...
+    # TODO: Refacor if/else/if/else ... hacky mess here
     def step
       @instruction = Instruction.new(@memory.read(@PC))
       @PC += 1
@@ -97,22 +98,19 @@ module DCPU16
       if @skip
         @skip = false
       else
-        if b
+        if b # Basic Instruction
           result = self.send(op, a.value, b.value)
-        else
+        else # Non-Basic Instruction
           result = self.send(op, a.value)
         end
         a.write(result) if result
       end
 
+      # Notify observers
       changed
       notify_observers(self)
     end
 
-    # TODO: May be removed
-    def get_operand(value)
-      DCPU16::Operand.new(self, value)
-    end
   end
 end
 
