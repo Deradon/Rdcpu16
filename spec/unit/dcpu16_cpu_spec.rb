@@ -1,6 +1,10 @@
 require 'spec_helper.rb'
+require 'unit/support/sample_observer'
 
 describe DCPU16::CPU do
+  # Initialize with non failing memory dump
+  subject { DCPU16::CPU.new( Array.new(10000, 0x01) ) }
+
   describe "Register" do
     its(:registers) { subject.length == 8 }
     its(:registers) { subject[0] == be_kind_of(DCPU16::Register) }
@@ -27,6 +31,14 @@ describe DCPU16::CPU do
     it "resets its #registers" do
       subject.registers.each { |register| register.should_receive(:reset) }
       subject.reset
+    end
+  end
+
+  describe "Observable" do
+    let(:observer) { DCPU16::SampleObserver.new }
+    specify do
+      subject.add_observer(observer)
+      expect { subject.step }.to change{observer.cycle}.by(1)
     end
   end
 end

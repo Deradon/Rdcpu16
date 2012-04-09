@@ -8,10 +8,13 @@ require 'dcpu16/memory'
 require 'dcpu16/operand'
 require 'dcpu16/register'
 
+require "observer"
+
 module DCPU16
   class CPU
     include DCPU16::Debug
     include DCPU16::Instructions
+    include Observable
 
     RAM_SIZE  = 0x10000
     REGISTERS = [:A, :B, :C, :X, :Y, :Z, :I, :J]
@@ -82,6 +85,9 @@ module DCPU16
         end
         a.write(result) if result
       end
+
+      changed
+      notify_observers(self)
     end
 
     # TODO: May be removed
