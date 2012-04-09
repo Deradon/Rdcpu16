@@ -1,7 +1,10 @@
 require 'dcpu16/word'
+require "observer"
 
 module DCPU16
   class Memory < Array
+    include Observable
+
     SIZE = 0x10000
     DEFAULT_VALUE = 0x0
 
@@ -22,6 +25,8 @@ module DCPU16
       offset = offset.value if offset.respond_to? :value
 
       self[offset] = value
+      changed
+      notify_observers(offset, value)
     end
 
     def reset
