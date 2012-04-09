@@ -13,6 +13,10 @@ module DCPU16
       default.each_with_index { |word, offset| write(offset, word) }
     end
 
+    def inspect
+      self.to_s
+    end
+
     def read(offset)
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
