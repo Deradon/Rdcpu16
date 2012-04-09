@@ -62,6 +62,13 @@ module DCPU16
       end
     end
 
+    # Current clock_cycle
+    def hz
+      diff = Time.now - (@started_at || Time.now)
+      diff = 1 if diff == 0
+      @cycle / diff
+    end
+
     # Resets the CPU and its sub-systems (registers, memory, ...)
     def reset
       @cycle = 0
