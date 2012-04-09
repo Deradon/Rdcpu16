@@ -1,0 +1,10 @@
+= Rdcpu16
+
+== Ruby port of: http://0x10c.com/doc/dcpu-16.txt
+This is a simple Ruby port of the fictive 16-bit-cpu DCPU16.
+
+== Make sure to checkout these resources:
+
+  * http://0x10c.com/
+  * http://0x10cforum.com/
+
