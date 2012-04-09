@@ -19,7 +19,7 @@ module DCPU16
     RAM_SIZE  = 0x10000
     REGISTERS = [:A, :B, :C, :X, :Y, :Z, :I, :J]
     REGISTERS_COUNT = REGISTERS.length
-    # CLOCK_CYCLE = 100000
+    CLOCK_CYCLE = 100000 # cycles per second
 
     attr_accessor :cycle, :memory, :registers
 
@@ -29,7 +29,7 @@ module DCPU16
     # HACK: actually used to determine if we need to skip next instruction
     attr_accessor :skip
 
-    # attr_reader :clock_cycle
+    attr_accessor :clock_cycle
 
     def initialize(memory = [])
       @cycle      = 0
@@ -39,6 +39,7 @@ module DCPU16
       @SP = DCPU16::Register.new(0xFFFF)
       @O  = DCPU16::Register.new(0x0)
 
+      @clock_cycle = CLOCK_CYCLE
       @debug = true
       @skip  = false
     end
@@ -46,8 +47,19 @@ module DCPU16
     # Define alias_methods for Registers: A(), B(), ...
     REGISTERS.each_with_index { |k, v| define_method(k) { registers[v] } }
 
+    # Run in endless loop
     def run
-      step while true
+      @started_at = Time.now
+      max_cycles = 1
+
+      while true do
+        if @cycle < max_cycles
+          step
+        else
+          diff = Time.now - @started_at
+          max_cycles = (diff * @clock_cycle)
+        end
+      end
     end
 
     # Resets the CPU and its sub-systems (registers, memory, ...)

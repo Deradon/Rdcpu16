@@ -17,10 +17,7 @@ describe DCPU16::CPU do
 #    specify { subject.memory.read(0x1b).value.should == 0x001a }
 
     specify do
-      begin
-        subject.run.should raise_error(RuntimeError, /Reserved/)
-      rescue
-      end
+      expect { subject.run }.to raise_error
 
       subject.cycle.should == 104
       subject.A.value.should == 0x2000
