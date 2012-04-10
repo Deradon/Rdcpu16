@@ -19,38 +19,40 @@
 # 1111 1100 0000 0000 -> 0xfc00
 
 module DCPU16
-  class Instruction
-    INSTRUCTIONS = [
-      :reserved,
-      :set, :add, :sub, :mul, :div, :mod,
-      :shl, :shr,
-      :and, :bor, :xor,
-      :ife, :ifn, :ifg, :ifb
-    ]
+  class CPU
+    class Instruction
+      INSTRUCTIONS = [
+        :reserved,
+        :set, :add, :sub, :mul, :div, :mod,
+        :shl, :shr,
+        :and, :bor, :xor,
+        :ife, :ifn, :ifg, :ifb
+      ]
 
-    NON_BASIC_INSTRUCTIONS = [
-      :reserved,
-      :jsr
-    ]
+      NON_BASIC_INSTRUCTIONS = [
+        :reserved,
+        :jsr
+      ]
 
-    attr_reader :opcode, :a, :b, :word
+      attr_reader :opcode, :a, :b, :word
 
-    def initialize(word = nil)
-      @word   = word.value
-      @opcode = @word & 0x000F
+      def initialize(word = nil)
+        @word   = word.value
+        @opcode = @word & 0x000F
 
-      if @opcode == 0x0
-        @non_basic = true
-        @opcode = (@word >> 4) & 0x3f
-        @a      = @word >> 10
-      else
-        @a = (@word >> 4) & 0x3f
-        @b = @word >> 10
+        if @opcode == 0x0
+          @non_basic = true
+          @opcode = (@word >> 4) & 0x3f
+          @a      = @word >> 10
+        else
+          @a = (@word >> 4) & 0x3f
+          @b = @word >> 10
+        end
       end
-    end
 
-    def op
-      @non_basic ? NON_BASIC_INSTRUCTIONS[@opcode] : INSTRUCTIONS[@opcode]
+      def op
+        @non_basic ? NON_BASIC_INSTRUCTIONS[@opcode] : INSTRUCTIONS[@opcode]
+      end
     end
   end
 end

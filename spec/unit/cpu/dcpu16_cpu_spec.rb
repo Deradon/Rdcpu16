@@ -7,11 +7,11 @@ describe DCPU16::CPU do
 
   describe "Register" do
     its(:registers) { subject.length == 8 }
-    its(:registers) { subject[0] == be_kind_of(DCPU16::Register) }
+    its(:registers) { subject[0] == be_kind_of(DCPU16::CPU::Register) }
 
-    its(:PC) { should be_kind_of(DCPU16::Register) }
-    its(:SP) { should be_kind_of(DCPU16::Register) }
-    its(:O)  { should be_kind_of(DCPU16::Register) }
+    its(:PC) { should be_kind_of(DCPU16::CPU::Register) }
+    its(:SP) { should be_kind_of(DCPU16::CPU::Register) }
+    its(:O)  { should be_kind_of(DCPU16::CPU::Register) }
   end
 
   its(:cycle) { should == 0 }

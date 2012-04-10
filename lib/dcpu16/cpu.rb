@@ -1,14 +1,11 @@
+require "observer"
 require 'dcpu16/support/debug'
 
+require 'dcpu16/cpu/instruction'
 require 'dcpu16/cpu/instructions'
+require 'dcpu16/cpu/operand'
+require 'dcpu16/cpu/register'
 
-require 'dcpu16/instruction'
-require 'dcpu16/literal'
-require 'dcpu16/memory'
-require 'dcpu16/operand'
-require 'dcpu16/register'
-
-require "observer"
 
 module DCPU16
   class CPU
@@ -35,10 +32,10 @@ module DCPU16
     def initialize(memory = [])
       @cycle      = 0
       @memory     = DCPU16::Memory.new(memory)
-      @registers  = Array.new(REGISTERS_COUNT) { DCPU16::Register.new }
-      @PC = DCPU16::Register.new(0x0)
-      @SP = DCPU16::Register.new(0xFFFF)
-      @O  = DCPU16::Register.new(0x0)
+      @registers  = Array.new(REGISTERS_COUNT) { Register.new }
+      @PC = Register.new(0x0)
+      @SP = Register.new(0xFFFF)
+      @O  = Register.new(0x0)
 
       @clock_cycle = CLOCK_CYCLE
       @debug = true

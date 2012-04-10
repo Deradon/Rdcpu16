@@ -1,0 +1,13 @@
+1.1
+  DCPU::Computer
+    has_one :cpu
+    has_one :screen
+    has_one :keyboard
+
+1.2
+  DCPU::Floppy < DCPU::Memory
+
+1.3
+  Register, Word and Literal are all ducktyped to behave similiar,
+  check if we can clean it up.
+

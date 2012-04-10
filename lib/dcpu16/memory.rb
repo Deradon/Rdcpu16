@@ -1,4 +1,4 @@
-require 'dcpu16/word'
+require 'dcpu16/memory/word'
 require "observer"
 
 module DCPU16
@@ -21,7 +21,7 @@ module DCPU16
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
 
-      DCPU16::Word.new(@memory[offset], self, offset)
+      Word.new(@memory[offset], self, offset)
     end
 
     def write(offset, value)

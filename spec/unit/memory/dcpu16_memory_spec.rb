@@ -5,7 +5,7 @@ describe DCPU16::Memory do
   its(:length) { should == 0x10000 }
 
   describe "#read" do
-    specify { subject.read(0).should be_a_kind_of(DCPU16::Word) }
+    specify { subject.read(0).should be_a_kind_of(DCPU16::Memory::Word) }
   end
 
 
