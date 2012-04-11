@@ -5,7 +5,7 @@ module DCPU16
       @cpu    = DCPU16::CPU.new(dump)
       @screen = DCPU16::Screen.new(@cpu.memory)
       @update_every = options[:update_every] || 100000
-      @step_mode    = true#false || options[:step_mode]
+      @step_mode    = false || options[:step_mode]
 
       @cpu.add_observer(self)
     end

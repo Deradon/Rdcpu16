@@ -19,7 +19,9 @@ if ARGV.length == 1
     assembler.write(tmp_file.path)
     dump = tmp_file.read.unpack("S>*")
   end
-  debugger = DCPU16::Debugger.new(dump, :update_every => 10000)
+
+  # TODO: get args from command line
+  debugger = DCPU16::Debugger.new(dump, :update_every => 10000, :step_mode => false)
   debugger.run
 elsif ARGV.length == 2
   file = File.open(ARGV[0])
