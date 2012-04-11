@@ -108,6 +108,19 @@ module DCPU16
       notify_observers(self)
     end
 
+    def to_s
+      <<EOF
+###########
+### CPU ###
+
+* Cycle: #{cycle}
+# Clock: #{clock_cycle}
+*    HZ: #{hz}
+*  Last: #{last_instruction.inspect}
+*  Reg.: #{registers.inspect}
+EOF
+    end
+
   end
 end
 

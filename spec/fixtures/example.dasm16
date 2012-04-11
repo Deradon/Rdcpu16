@@ -1,0 +1,20 @@
+; Patrick Helm, deradon87@gmail.com
+;
+; Flash Screen with chars (Benchmark)
+;
+; Output:
+;   * Cycle: 519002     (Cycle needed to finish)
+;   * Clock: 100000     (Clock-Speed of CPU [defined])
+;   *    HZ: 99999.02   (Clock-Speed of CPU [real])
+
+SET C, 0x30                       ; Init OuterLoop
+:outer_loop SET B, 0              ; Init InnerLoop
+:inner_loop SET [0x8000+B], C     ;draw
+ADD B, 1
+IFG 0x0300, B
+SET PC, inner_loop                ;jmp inner_loop
+
+ADD C,1
+IFG 0x7B, C
+SET PC, outer_loop                ;jmp outer_loop
+

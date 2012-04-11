@@ -11,3 +11,14 @@
   Register, Word and Literal are all ducktyped to behave similiar,
   check if we can clean it up.
 
+1.4 DualScreen (*MultiScreen)
+require 'dcpu16'
+cpu = DCPU16::CPU.new
+screen = DCPU16::Screen.new(cpu.memory)
+screen2 = DCPU16::Screen.new(cpu.memory, :x_offset => 40, :memory_offset => 0x9000)
+cpu.memory.write(0x8000, 0x30)
+cpu.memory.write(0x9000, 0x30)
+
+1.5 Screen
+  * RefreshRate
+
