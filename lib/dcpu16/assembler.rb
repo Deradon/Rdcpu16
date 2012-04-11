@@ -196,9 +196,11 @@ module DCPU16
         next if cleaned.empty?
 
         tokens = cleaned.split(/\s/)
-        op.error("Wrong number of tokens - #{tokens}") unless (2..4) === tokens.size
 
+        op.error("Wrong number of tokens - #{tokens}") unless (1..4) === tokens.size
         labels[tokens.shift[1..-1]] = location if tokens[0].start_with?(":")
+        next if tokens.size == 0
+
         parse_op(op, tokens)
 
         @body << op

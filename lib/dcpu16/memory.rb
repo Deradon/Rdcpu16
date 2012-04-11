@@ -28,6 +28,7 @@ module DCPU16
       # HACK: so we can just pass a Fixnum or a Register
       offset = offset.value if offset.respond_to? :value
 
+      value &= 0xFFFF
       @memory[offset] = value
 
       # Notify observers

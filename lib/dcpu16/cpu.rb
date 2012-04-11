@@ -32,7 +32,9 @@ module DCPU16
     def initialize(memory = [])
       @cycle      = 0
       @memory     = DCPU16::Memory.new(memory)
-      @registers  = Array.new(REGISTERS_COUNT) { Register.new }
+      @registers  = []
+      [:A, :B, :C, :X, :Y, :Z, :I, :J].each { |r| @registers << Register.new(0x0, r) }
+
       @PC = Register.new(0x0)
       @SP = Register.new(0xFFFF)
       @O  = Register.new(0x0)
@@ -62,7 +64,9 @@ module DCPU16
 
     # Current clock_cycle
     def hz
-      diff = Time.now - (@started_at || Time.now)
+      now = Time.now
+      @started_at ||= now
+      diff = now - @started_at
       diff = 1 if diff == 0
       @cycle / diff
     end
@@ -84,28 +88,30 @@ module DCPU16
 
     # Perform a single step
     # TODO: Refacor if/else/if/else ... hacky mess here
-    def step
-      @instruction = Instruction.new(@memory.read(@PC))
-      @PC += 1
+    def step(steps = 1)
+      steps.times do
+        @instruction = Instruction.new(@memory.read(@PC))
+        @PC += 1
 
-      op  = @instruction.op
-      a   = get_operand(@instruction.a)
-      b   = get_operand(@instruction.b) if @instruction.b
+        op  = @instruction.op
+        a   = get_operand(@instruction.a)
+        b   = get_operand(@instruction.b) if @instruction.b
 
-      if @skip
-        @skip = false
-      else
-        if b # Basic Instruction
-          result = self.send(op, a.value, b.value)
-        else # Non-Basic Instruction
-          result = self.send(op, a.value)
+        if @skip
+          @skip = false
+        else
+          if b # Basic Instruction
+            result = self.send(op, a.value, b.value)
+          else # Non-Basic Instruction
+            result = self.send(op, a.value)
+          end
+          a.write(result) if result
         end
-        a.write(result) if result
-      end
 
-      # Notify observers
-      changed
-      notify_observers(self)
+        # Notify observers
+        changed
+        notify_observers(self)
+      end
     end
 
     def to_s
@@ -117,7 +123,11 @@ module DCPU16
 # Clock: #{clock_cycle}
 *    HZ: #{hz}
 *  Last: #{last_instruction.inspect}
-*  Reg.: #{registers.inspect}
+*  Reg.: #{registers.join("\n         ")}
+*    SP: #{@SP}
+*    PC: #{@PC}
+*     O: #{@O}
+ 0x8000: #{memory[0x8000].value.to_s(16)}
 EOF
     end
 

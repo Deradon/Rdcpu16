@@ -3,8 +3,9 @@ module DCPU16
     class Register
       attr_reader :value
 
-      def initialize(value = 0x0)
+      def initialize(value = 0x0, name = nil)
         @default_value = value
+        @name = name
         reset
       end
 
@@ -25,11 +26,22 @@ module DCPU16
       end
 
       def write(value)
+        value = 0 if value > 0xFFFF
         @value = value
       end
 
       def reset
         @value = @default_value
+      end
+
+      def inspect
+        { :name => @name, :value => @value, :default_value => @default_value }
+      end
+
+      def to_s
+        vh = ""
+        dh =
+        "name: #{@name}\tvalue: 0x%04x(#{@value})\tdefault: 0x%04x#{@default_value}" % [@value, @default_value]
       end
     end
   end

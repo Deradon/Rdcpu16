@@ -13,6 +13,7 @@ module DCPU16
       alias_method :read, :value
 
       def write(value)
+        value &= 0xFFFF
         @value = value
         @memory.write(@offset, value)
       end

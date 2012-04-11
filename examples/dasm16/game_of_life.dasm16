@@ -1,0 +1,155 @@
+; set screen width - the field width is 16
+; corresponding to 16 bits per row word
+
+SET X, 40        ; set your output screen width
+SUB X, 16        ;
+SET [0x10ff], X  ; store offset
+
+; setup the starting field, 1 bit = 1 cell, 8 words = 128 cells
+:setup
+  SET [0x1001], 0x0021  ; numbers I picked randomly which create
+  SET [0x1002], 0x1110  ; some chaos
+  SET [0x1003], 0x0070
+  SET [0x1004], 0x0d09
+  SET [0x1005], 0x1fb1
+  SET [0x1006], 0x2a7f
+  SET [0x1007], 0x0aa4
+  SET [0x1008], 0x0404
+  SET I, 0
+  SET PC, draw
+
+; cycle through each row and draw its cells
+; I = current row, J = current bit, Y = bit id (for printing)
+:draw
+  ADD I, 1
+  SET J, 1
+  SET Y, 0
+  IFN I, 9
+    SET PC, drawcells
+  SET I, 0
+  SET PC, checkfield
+
+; cycle through each bit in row and draw as cell
+; I = current row, J = bit to mask, Y = bit#, X = (16*I)-Y (+printing offset)
+:drawcells
+  IFE J, 0
+    SET PC, draw
+  SET A, [0x1000+I]
+  AND A, J
+    SHL J, 1            ; shift mask bit
+    ADD Y, 1            ; increment bit id number
+    SET X, 16
+    MUL X, I
+    SUB X, Y
+    SET C, [0x10ff]
+    MUL C, I
+    ADD X, C
+    SUB X, [0x10ff]
+  IFE A, 0
+    SET [0x8000+X], 46
+  IFG A, 0
+    SET [0x8000+X], 48
+  SET PC, drawcells
+
+; cycle through each row and map neighbours
+:checkfield
+  ADD I, 1
+  IFN I, 9
+    SET PC, checkrow
+  SET I, 0
+  SET PC, newfield
+
+; generate and store 3 words A, B, C
+; A indicates if cell has 2 horizontal neighbours
+; B indicates if call has 1 "
+; C is a copy of current row, for checking vertical neighbours later
+:checkrow
+  SET A, [0x1000+I]
+  SET B, A
+  SET C, A
+    SHL A, 1		; shift current row left
+    SHR B, 1            ; shift current row right
+	SET Y, C        ; wrap around
+	AND Y, 1
+	IFN Y, 0
+          ADD B, 0x8000
+        SET Y, C
+	AND Y, 0x8000
+	IFN Y, 0
+	  ADD A, 1
+  SET X, A              ; store A
+  AND A, B              ; AND A, B reveals which cells have 2 horizontal neighbours
+  XOR B, X              ; XOR A(X), B reveals which cells have 1 horizontal neighbour
+  SET [0x2000+I], A
+  SET [0x3000+I], B
+  SET [0x4000+I], C
+  SET PC, checkfield
+
+; cycle through each row, create new generation
+:newfield
+  ADD I, 1
+  SET J, 1
+  SET X, 0              ; X will contain our new row
+  IFN I, 9
+    SET PC, newrow
+  SET I, 0
+  SET PC, draw
+
+; check each bit in row against data created by :checkfield, I = row
+:newrow
+  IFE J, 0
+    SET PC, writerow
+  SET Y, 0              ; counter
+  SET A, [0x1fff+I]     ; check if cell, row+ cell,
+  SET B, [0x2000+I]     ; and row- cell have 2 neighbours
+  SET C, [0x2001+I]
+  AND A, J
+  AND B, J              ; mask bit and
+  AND C, J              ; check for hit
+  IFN A, 0
+    ADD Y, 2
+  IFN B, 0
+    ADD Y, 2
+  IFN C, 0
+    ADD Y, 2
+  SET A, [0x2fff+I]     ; check if cell, row+ cell,
+  SET B, [0x3000+I]     ; and row- cell have 1 neighbour
+  SET C, [0x3001+I]     ;
+  AND A, J
+  AND B, J
+  AND C, J
+  IFN A, 0
+    ADD Y, 1
+  IFN B, 0
+    ADD Y, 1
+  IFN C, 0
+    ADD Y, 1
+  SET A, [0x3fff+I]     ; check if cell above is neighbour
+  SET B, [0x4001+I]     ; check if cell below is neighbour
+  AND A, J
+  AND B, J
+  IFN A, 0
+    ADD Y, 1
+  IFN B, 0
+    ADD Y, 1
+  IFE Y, 3              ; if 3 neighbours, cell is alive
+    ADD X, J            ; add the mask bit to X
+  IFE Y, 2              ; if 2 neighbours, cell remains alive
+    SET PC, checkalive  ; if it is already
+  SHL J, 1
+  SET PC, newrow
+
+; if neighbours = 2, the cell will only continue living (not come alive)
+:checkalive
+  SET A, [0x1000+I]
+  AND A, J
+  IFN A, 0
+    ADD X, J
+  SHL J, 1
+  SET PC, newrow
+
+; replace row in field with new generation
+:writerow
+  SET [0x1000+I], X
+  SET PC, newfield
+

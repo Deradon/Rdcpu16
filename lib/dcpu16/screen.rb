@@ -64,7 +64,7 @@ module DCPU16
       return @to_s if @to_s
 
       @to_s =  "\e[?1049h\e[17;1H"
-      @to_s << chars.join
+      @to_s << @chars.join
       @to_s << frame
     end
 
@@ -93,16 +93,16 @@ module DCPU16
     # Callback from observed memory
     def update(offset, value)
       return unless (memory_offset..memory_offset_end).include?(offset)
-#      @to_s = nil
+      @to_s = nil
 
       diff = (offset - @memory_offset) / 2
       h    = diff / @width
       w    = diff % @width
       @chars[diff] = Char.new(value, w + @x_offset, h + @y_offset)
       print @chars[diff]
-#      changed
-#      notify_observers(self)
-#      print @chars[diff]
+      changed
+      notify_observers(self)
+      print @chars[diff]
     end
   end
 

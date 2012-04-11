@@ -19,12 +19,17 @@ if ARGV.length == 1
     assembler.write(tmp_file.path)
     dump = tmp_file.read.unpack("S>*")
   end
-  debugger = DCPU16::Debugger.new(dump)
+  debugger = DCPU16::Debugger.new(dump, :update_every => 10000)
   debugger.run
 elsif ARGV.length == 2
   file = File.open(ARGV[0])
   assembler = DCPU16::Assembler.new(file.read)
   assembler.write(ARGV[1])
+
+  File.open(ARGV[1] + ".hex", "w") do |file|
+    file.write(assembler.dump.join("\n"))
+  end
+
 else
   puts "Usage: dcpu16 <input> <output>"
   exit
