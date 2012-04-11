@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.summary     = "Ruby port of DCPU16"
   s.description = "This is a simple Ruby port of the fictive 16-bit-cpu DCPU16."
 
-  s.executables   = ["dcpu16.rb"]
+  s.executables   = ["dcpu16"]
   s.files         = Dir["{bin,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files    = Dir["{spec}/**/*"]
   s.require_paths = ["lib"]
