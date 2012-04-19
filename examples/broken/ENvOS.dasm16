@@ -1,0 +1,443 @@
+
+;ok some important variables
+SET [0x5FFA], 0 ;did we print a command?
+SET [0x5FFD], 0x8000 ;video pointer
+SET [0x5FFB], 0x0000 ;current menu item
+SET [0x5FFC], 0x9000 ;keyboard pointer
+SET PC, boot
+:keypointer  dat 0
+:unknownc    DAT " Unknown Command", 0
+:intro       DAT " Loading Env v 0.3.0", 0
+:hardware    DAT " Hardware probing and initialization will go here", 0
+:typehelp    DAT " Type 'help' for a list of commands", 0
+:helpout     DAT " Current commands are: help, reset, about, load, gui", 0
+:abouttext   DAT " ENvCS, Written by Hjax, v0.3.0, type 'help' to view a list of commands", 0
+:welcome     DAT " Welcome to ENvCS", 0
+:prompt      DAT "> ", 0
+
+;menu items for the gui
+:auto        DAT "AUTO", 0
+:shield      DAT "SHIELD", 0
+:drive       DAT "DRIVE", 0
+:weapon      DAT "WEAPON", 0
+:ftl         DAT "FTL", 0
+:doublespace DAT "  ", 0
+
+
+:kbinput     set Z,[keypointer]
+	     add Z, 0x9000
+             SET A, Z
+	     set Z,[Z]
+	     set [A], 0
+	     add [keypointer], 1
+	     and [keypointer], 0xf
+             SET PC, POP
+
+:boot        SET B, intro
+             JSR printnl
+             SET B, hardware
+             JSR printnl
+             JSR loadbarinit
+             ADD [0x5FFD], 1
+             SET C, 0x001E
+:bootload    JSR loadbarADD
+             SUB C, 0x0001
+             IFN C, 0x0000
+             SET PC, bootload
+             JSR newline
+             SET B, welcome
+             JSR printnl
+             SET B, typehelp
+             JSR printnl
+             SET B, prompt
+             JSR printdat
+             SET PC, main
+
+:printdat    IFE [0x5FFD], 0x8200
+             JSR scroll
+	     SET A, [B]
+             IFE A, 0
+             SET PC, POP
+	     BOR A, 0xf100
+	     SET C, [0x5FFD]
+             SET [C], A
+	     ADD B, 1
+	     ADD [0x5FFD], 1
+	     SET PC, printdat
+
+:printnl     JSR printdat
+             JSR newline
+             SET PC, POP
+
+:append      BOR I, 0xf100
+             SET C, [0x5FFD]
+             SET [C], I
+             ADD [0x5FFD], 1
+             SET PC, POP
+
+:reset       SET J, 0x0000
+             SET [0x7FFC], 0x0000
+             JSR clearScreen
+             SET [0x5FFD], 0x8000
+             SET [0x5FFA], 1
+             SET B, prompt
+             JSR printdat
+             SET PC, POP
+
+:main        JSR kbinput
+             IFE Z, 0x0000     ; if the user hasn't typed anything in yet
+             SET PC, main        ;continue waiting
+             IFE Z, 0xA   ;the user hit enter, proccess the command!
+             SET PC, command
+             IFE Z, 0x8   ;the user hit the delete key
+             SET PC, delete
+             BOR Z, 0xF100
+             SET I, Z
+             SET Z, 0
+             SET B, [0x5FFD]
+             MOD B, 32
+             IFE B, 0
+             SET PC, main
+             IFN I, 0
+             jsr append
+             SET PC, main
+
+:delete      SUB [0x5FFD], 1
+             SET Z, [0x5FFD]
+             SET J, Z
+             MOD J, 32
+             IFE J, 1
+             ADD [0x5FFD], 1
+             SET [Z], 0x0000
+             SET [0x9000], 0
+             SET PC, main
+
+:newline
+  	     SET i, [0x5FFD]
+ 	     MOD i, 32
+	     SET z, 32
+ 	     SUB z, i
+ 	     ADD [0x5FFD], z
+ 	     SET pc, POP
+
+:command     SET [0x9000], 0
+             SET [0x5FFA], 0
+             JSR newline
+             SET Y, [0x5FFD]
+             SUB Y, 0x001E
+             IFE [Y], 0xF168
+             JSR help
+             IFE [y], 0xF172
+             JSR reset
+             IFE [y], 0xF161
+             JSR about
+             IFE [y], 0xF16C
+             JSR loadbardemo
+             IFE [y], 0xF167
+             JSR gui
+             IFE [0x5FFA], 0
+             JSR unknown
+             SET Z, 0x0000
+             SET Y, 0x0000
+             SET PC, main
+
+:unknown     SET B, unknownc
+             JSR printdat
+             JSR newline
+             SET B, prompt
+             JSR printdat
+             SET PC, POP
+:about       SET B, abouttext
+             JSR printdat
+             JSR newline
+             SET B, prompt
+             JSR printdat
+             SET [0x5FFA], 1
+             SET pc, POP
+:help        SET b, helpout
+             JSR printdat
+             SET [0x5FFA], 1
+             JSR newline
+             SET b, prompt
+             JSR printdat
+             SET PC, POP
+:loadbarinit SET C, [0x5FFD]
+             SET X, 0x003C
+             BOR X, 0xf400
+             SET Y, 0x003E
+             BOR Y, 0xf400
+             SET [C], X
+             ADD C, 0x001F
+             SET [C], Y
+             SET [0x5FFA], 1
+             SET PC, POP
+
+:loadbardemo JSR loadbarinit
+             ADD [0x5FFD], 1
+             JSR loadbarkb
+             SET [0x5FFA], 1
+             JSR newline
+             SET b, prompt
+             JSR printdat
+             SET PC, POP
+
+:loadbarkb   JSR kbinput
+             IFE Z, 0x0000
+             SET PC, loadbarkb
+             BOR z, 0xf100
+             IFE Z, 0xF12C
+             JSR loadbardel
+             IFE Z, 0xF12E
+             JSR loadbaradd
+             IFE Z, 0xF171
+             SET Pc, POP
+             SET PC, loadbarkb
+
+:loadbaradd  SET I, 0x0020
+             SET Y, [0x5FFD]
+             SUB Y, 0x8000
+             MOD Y, 32
+             IFE J, 1
+             ADD [0x5FFD], 1
+             IFE Y, 31
+             SUB [0x5FFD], 1
+             BOR I, 0xf200
+             SET a, [0x5FFD]
+             SET [a], I
+             ADD [0x5FFD], 1
+             SET J, 0
+             SET PC, POP
+
+:loadbardel  IFE J, 0
+             SUB [0x5FFD], 1
+             SET Y, [0x5FFD]
+             SUB Y, 0x8000
+             MOD y, 32
+             IFE Y, 0
+             ADD [0x5FFD], 1
+             IFE y, 31
+             SUB [0x5FFD], 1
+             SET a, [0x5FFD]
+             SET [a], 0x0000
+             SET [0x9000], 0
+             SUB [0x5FFD], 1
+             SET J, 1
+             SET PC, POP
+:scroll
+ 	     SET x, 0x8000
+             SET C, 0x8020
+             SET j, sp			; nifty stack pointer abuse :P
+             SET sp, 0x8000
+
+:scroll_loop
+	     SET POP, [c]
+	     SET POP, [1+C]
+	     SET POP, [2+C]
+	     SET POP, [3+C]
+	     SET POP, [4+C]
+	     SET POP, [5+C]
+	     SET POP, [6+C]
+	     SET POP, [7+C]
+	     SET POP, [8+C]
+	     SET POP, [9+C]
+	     SET POP, [10+C]
+	     SET POP, [11+C]
+	     SET POP, [12+C]
+	     SET POP, [13+C]
+	     SET POP, [14+C]
+	     SET POP, [15+C]
+	     SET POP, [16+C]
+	     SET POP, [17+C]
+	     SET POP, [18+C]
+	     SET POP, [19+C]
+	     SET POP, [20+C]
+	     SET POP, [21+C]
+	     SET POP, [22+C]
+	     SET POP, [23+C]
+	     SET POP, [24+C]
+	     SET POP, [25+C]
+	     SET POP, [26+C]
+	     SET POP, [27+C]
+	     SET POP, [28+C]
+	     SET POP, [29+C]
+	     SET POP, [30+C]
+	     SET POP, [31+C] ; unrolled loop. So sue me :P
+	     ADD C, 32
+	     IFG C, 0x8231
+	     SET pc, scroll_end
+	     SET pc, scroll_loop
+
+:scroll_end
+             SET sp, j
+	     SET [0x1335], 0x81e0
+             SUB [0x5FFD], 0x0020
+	     SET pc, POP
+
+:clearScreen
+             IFN [0x7FFC], 0x0000
+             BOR J, [0x7FFC]
+             SET i, sp
+             SET sp, [0x5FFD]
+:clearScreen_loop
+             SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     SET PUSH, J
+	     IFG 0x8000, sp
+	     SET pc, clearScreen_done
+	     SET pc, clearScreen_loop
+
+:clearScreen_done
+             SET sp, i
+	     SET pc, POP
+
+:gui         SET J, 0x0000
+             SET [0x7FFC], 0xF600
+             SET [0x5FFD], 0x8200
+             JSR clearScreen
+             SET [0x5FFD], 0x8000
+             SET [0x5FFA], 1
+             SET [0x5FFB], 1
+             JSR draw
+             JSR selectmenu
+             SET [0x5FFD], 0x8040
+             JSR loadbarinit
+             ADD [0x5FFD], 1
+             JSR drawloop
+             SET PC, POP
+
+:regui       SET J, 0x0000
+             SET [0x7FFC], 0xF600
+             SET [0x5FFD], 0x8200
+             JSR clearScreen
+             SET [0x5FFD], 0x8000
+             SET [0x5FFA], 1
+             JSR draw
+             JSR selectmenu
+             SET [0x5FFD], 0x8040
+             IFE [0x5FFB], 1
+             JSR loadbarinit
+             ADD [0x5FFD], 1
+             JSR drawloop
+             SET PC, POP
+
+:draw        SET [0x5FFD], 0x8000
+             SET B, auto
+             JSR drawmenu
+             SET B, doublespace
+             JSR drawmenu
+             SET B, shield
+             JSR drawmenu
+             SET B, doublespace
+             JSR drawmenu
+             SET B, drive
+             JSR drawmenu
+             SET B, doublespace
+             JSR drawmenu
+             SET B, weapon
+             JSR drawmenu
+             SET B, doublespace
+             JSR drawmenu
+             SET B, ftl
+             JSR drawmenu
+             SET PC, POP
+
+:drawmenu    SET A, [B]
+             IFE A, 0x0000
+             SET PC, POP
+	     BOR A, 0xf100
+	     SET C, [0x5FFD]
+             SET [C], A
+	     ADD B, 1
+	     ADD [0x5FFD], 1
+	     SET PC, drawmenu
+
+:drawloop    JSR kbinput
+             IFE Z, 0x0000
+             SET PC, drawloop
+             BOR Z, 0xF100
+             IFE Z, 0xF16C
+             ADD [0x5FFB], 1
+             IFE Z, 0xF16B
+             SUB [0x5FFB], 1
+             IFG [0x5FFB], 5
+             SET [0x5FFB], 5
+             IFG 1, [0x5FFB]
+             SET [0x5FFB], 1
+             SET [0x9000], 0x0000
+             IFE Z, 0xF16C
+             JSR menumove
+             IFE Z, 0xF16B
+             JSR menumove
+             IFE Z, 0xF12C
+             JSR loadbardel
+             IFE Z, 0xF12E
+             JSR loadbaradd
+             IFE Z, 0xF171
+             SET Pc, resetterm
+             SET PC, drawloop
+
+:resetterm   SET [0x5FFD], 0x8200
+             JSR reset
+             SET PC, POP
+
+:menumove    JSR regui
+             JSR selectmenu
+             SET PC, POP
+
+:selectmenu  IFE [0x5FFB], 1
+             SET B, auto
+             IFE [0x5FFB], 2
+             SET B, shield
+             IFE [0x5FFB], 3
+             SET B, drive
+             IFE [0x5FFB], 4
+             SET B, weapon
+             IFE [0x5FFB], 5
+             SET B, ftl
+             IFE [0x5FFB], 1
+             SET C, 0x8000
+             IFE [0x5FFB], 2
+             SET C, 0x8006
+             IFE [0x5FFB], 3
+             SET C, 0x800E
+             IFE [0x5FFB], 4
+             SET C, 0x8015
+             IFE [0x5FFB], 5
+             SET C, 0x801D
+:selectloop  SET A, [B]
+             IFE A, 0x0000
+             SET PC, POP
+             BOR A, 0xF200
+             SET [C], A
+             ADD B, 1
+             ADD C, 1
+             SET PC, selectloop

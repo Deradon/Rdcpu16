@@ -1,0 +1,385 @@
+; Pong by Patrick Flick aka r4d2
+; patrick (dot) flick (at) gmail (dot) com
+; Current Version 0.3.2
+;
+; Play with the 'W' ans 'S' keys to move the left bat
+;
+; SORRY in this current version of the 0x10co.de emulator
+;       it is not possible to detect if a key is pressed and held
+;       so you might want to press the keys crazyly "WWWWWSSSSWWWWSS"
+;       I hope there will be again a version, where it is possible to
+;       get the KeyDown state
+; 
+; this is far from done, please contact me by mail for feedback :)
+; this is a version for http://0x10co.de/
+;
+; TODO
+; -> real collision detection
+; -> changing directions (i.e. changing y/x quotient based on bat speeds)
+; -> user interactions (done)
+; -> make AI more stupid (so scoring is possible)
+; -> score-board
+; -> main menu
+; -> load up screen
+
+:main
+
+; ------------------------------------
+;  Load Up Screen
+; ------------------------------------
+	set a, pongWelcomeMsg
+	set b, [pongColorMask]
+	set c, 0x8000
+	jsr print_middle
+	set a, pongKeysHelp
+	jsr print_middle
+
+; ------------------------------------
+;  Initialize game variables
+; ------------------------------------
+:initGame
+	set i, 5
+	set j, 5
+
+; ------------------------------------
+;  Initialize turn variables
+; ------------------------------------
+:initBall
+	set [xSpeed], [initxSpeed]
+	set [xPos], [initxPos]
+	set [xSpeedDir], [initxSpeedDir]
+
+	set [ySpeed], [initySpeed]
+	set [yPos], [inityPos]
+	set [ySpeedDir], [initySpeedDir]
+
+; ------------------------------------
+;  main simulation/output loop
+; ------------------------------------
+:main_loop
+	; clear ball using x and y as coordinates
+	set a, y
+	mul a, 0x20
+	add a, x
+	set b, [emptyChar]
+	set [0x8000+a], b
+	
+	; advance step:
+
+	; set new y
+	set a, [ySpeed]
+	set b, [yPos]
+	set c, [ySpeedDir]
+	ife c, 0x00
+		add b, a
+	ife c, 0x01
+		sub b, a
+	set [yPos], b
+	set y, b
+	shr y, 0x08
+	ifg y, 0x0b
+		set c, 0x01
+	ifg 0x01, y
+		set c, 0x00
+	set [ySpeedDir], c
+
+	; set x
+	set a, [xSpeed]
+	set b, [xPos]
+	set c, [xSpeedDir]
+	ife c, 0x00
+		add b, a
+	ife c, 0x01
+		sub b, a
+	set [xPos], b
+	set x, b
+	shr x, 0x08
+	; collision detection with bats
+	ifg x, 0x1d
+		set PC, coll_check_right
+	ifg 0x02, x
+		set PC, coll_check_left
+	set PC, end_coll_check
+:coll_check_left
+	set a, i
+	sub a, 1
+	ifg a, y
+		set PC, coll_fail
+	add a, 3
+	ifg y, a
+		set PC, coll_fail
+	set c, 0x00
+	set PC, end_coll_check
+:coll_check_right
+	; no check yet for AI, as AI plays perfect anyway :)
+	set c, 0x01
+	set PC, end_coll_check
+:end_coll_check
+	set [xSpeedDir], c
+		
+
+	
+	
+
+	
+	; move one of the bats, only the one next receiving, at max one step at a time
+	set c, [xSpeedDir]
+	ife c, 0x00
+		set a, i
+	ife c, 0x00
+		set a, j
+	ifg a, y
+		sub a, 1
+	ifg y, a
+		add a, 1
+	ifg a, 0x0a
+		set a, 0x0a
+	ife c, 0x00
+		set j, a
+		
+	ife 0x0, 0x00
+		set PC, move_bat_player
+	ife c, 0x01
+		set i, a
+	set PC, end_move_bat
+:move_bat_player
+	;set a, [KeyW]
+	;jsr IsKeyDown
+	jsr getlastkey
+	ife a, [KeyW]
+		sub i, 1
+
+	;set a, [KeyS]
+	;jsr IsKeyDown
+	ife a, [KeyS]
+		add i, 1
+	ifg i, 0xfff0
+		set i, 0x00
+	ifg i, 0x0a
+		set i, 0x0a
+:end_move_bat
+
+
+	; paint ball
+	set a, y
+	mul a, 0x20
+	add a, x
+	set b, [ballChar]
+	set [0x8000+a], b
+	
+
+	; left bat: i is vertical position of first in {0,...,11}
+	set b, [vertLineChar]
+	set a, i
+	mul a, 0x20
+	set [0x8000+a], b
+	set a, i
+	add a, 0x01
+	mul a, 0x20
+	set [0x8000+a], b
+	set a, i
+	sub a, 1
+	mul a, 0x20
+	ifg 0xfff0, a
+		set [0x8000+a], 0x0
+	set a, i
+	add a, 0x02
+	mul a, 0x20
+	ifg 0x0200, a
+		set [0x8000+a], 0x0
+	; right bat: i is vertical position of first in {0,...,11}
+	set b, [vertLineChar]
+	set a, j
+	mul a, 0x20
+	add a, 0x1f
+	set [0x8000+a], b
+	set a, j
+	add a, 0x01
+	mul a, 0x20
+	add a, 0x1f
+	set [0x8000+a], b
+	set a, j
+	sub a, 0x01
+	mul a, 0x20
+	add a, 0x1f
+	ifg 0xfff0, a 
+		set [0x8000+a], 0x0
+	set a, j
+	add a, 0x02
+	mul a, 0x20
+	add a, 0x1f
+	ifg 0x0200, a
+		set [0x8000+a], 0x0
+		
+	; wait
+	set a, 0x0
+:wait_l
+	add a, 0x01
+	ife a, 0x0200
+		set PC, wait_end
+	set PC, wait_l
+:wait_end
+	
+	set PC, main_loop
+	
+	
+; -----------------------------------------
+; fail routine, adding score and restarting
+; -----------------------------------------
+:coll_fail
+	set a, 0
+:write_fail_l
+	set b, [failMsg+a]
+	bor b, [failColorMask]
+	set [0x808e+a], b
+	add a, 1
+	ife [failMsg+a], 0x00
+		set PC, write_fail_end
+	set PC, write_fail_l
+:write_fail_end
+	; wait
+	set a, 0x0
+:fail_wait_l
+	add a, 0x01
+	ife a, 0x2000
+		set PC, fail_wait_end
+	set PC, fail_wait_l
+:fail_wait_end
+set a, 0
+:clear_fail_l
+	set [0x808e+a], 0x00
+	add a, 1
+	ife [failMsg+a], 0x00
+		set PC, clear_fail_end
+	set PC, clear_fail_l
+:clear_fail_end
+	set PC, initBall
+
+; -----------------------------------------
+; get last pressed key and returns it in register a
+; -----------------------------------------
+:getlastkey
+	; check if there are new keys
+	ife [0x9010], 0
+		set a, 0x00
+	ife [0x9010], 0
+		set PC, POP
+
+	; get pointer to next key and resolve
+	set b, [0x9010]
+	set a, [b]
+	; clear pointer
+	set [0x9010], 0x00
+
+	; clear buffer
+	set b, 0x9000
+	:clear_buffer_loop
+		set [b], 0
+		add b, 1
+		ifn b, 0x9010
+			set pc, clear_buffer_loop
+	set PC, POP
+	
+:KeyW
+	dat "w"
+:KeyS
+	dat "s"
+
+
+; ------------------------------------
+;  Prints a string in the middle
+;   a - adress of 0 terminated string
+;   b - color mask for string
+;   c - wait duration
+; ------------------------------------
+:print_middle
+	set PUSH, i
+	set PUSH, j
+	set i, 0
+:write_middle_loop
+	set j, a
+	add j, i
+	set j, [j]
+	bor j, b
+	set [0x8082+i], j
+	add i, 1
+	set j, a
+	add j, i
+	ife [j], 0x00
+		set PC, write_middle_end
+	set PC, write_middle_loop
+:write_middle_end
+	; wait
+	set i, 0x0
+:middle_wait_loop
+	add i, 0x01
+	ife i, c
+		set PC, middle_wait_end
+	set PC, middle_wait_loop
+:middle_wait_end
+set i, 0
+:clear_middle_loop
+	set [0x8082+i], 0x0000
+	add i, 1
+	set j, a
+	add j, i
+	ife [j], 0x00
+		set PC, clear_middle_end
+	set PC, clear_middle_loop
+:clear_middle_end
+	set j, POP
+	set i, POP
+	set PC, POP
+
+
+
+; catch possible errors before running into data
+:end
+	set PC, end
+	
+; ------------------------------------
+;  data
+; ------------------------------------
+:xSpeed
+	dat 0x0100
+:xPos
+	dat 0x0100
+:xSpeedDir
+	dat 0x0
+:ySpeed
+	dat 0x00a0
+:yPos
+	dat 0x0100
+:ySpeedDir
+	dat 0x0
+	
+:initxSpeed
+	dat 0x0100
+:initxPos
+	dat 0x0100
+:initxSpeedDir
+	dat 0x0
+:initySpeed
+	dat 0x00a0
+:inityPos
+	dat 0x0100
+:initySpeedDir
+	dat 0x0
+	
+; chars for output
+:vertLineChar
+	dat 0xf07c
+:ballChar
+	dat 0xf06f
+:emptyChar
+	dat 0x00
+:failMsg
+	dat "Fail!", 0x00
+:failColorMask
+	dat 0xc000
+:pongWelcomeMsg
+	dat "Pong - by r4d2", 0x00
+:pongColorMask
+	dat 0xe000
+:pongKeysHelp
+	dat "Use Keys 'W' and 'S' to play", 0x00
