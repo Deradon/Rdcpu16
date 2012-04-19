@@ -39,6 +39,7 @@ module DCPU16
 
 
       # Initial Screen dump
+      # CHECK: might be buggy
       @chars  = []
       @height.times do |h|
         @width.times do |w|
@@ -57,7 +58,7 @@ module DCPU16
     end
 
     def memory_offset_end
-      @memory_offset_end ||= 0x82FE#@memory_offset + size*2 - 2
+      @memory_offset_end ||= @memory_offset + size - 1
     end
 
     def to_s
@@ -95,7 +96,7 @@ module DCPU16
       return unless (memory_offset..memory_offset_end).include?(offset)
       @to_s = nil
 
-      diff = (offset - @memory_offset) / 2
+      diff = offset - @memory_offset
       h    = diff / @width
       w    = diff % @width
       @chars[diff] = Char.new(value, w + @x_offset, h + @y_offset)
@@ -136,20 +137,4 @@ module DCPU16
     end
   end
 end
-
-
-
-#The high 8 bits determine the color; the highest 4 are the foreground and the lowest 4 are the background
-
-#args = []
-#args << (value >> 15)
-#if value > 0x7F
-#  args << color_to_ansi(value >> 12) + 30
-#  args << color_to_ansi(value >> 8)  + 40
-#end
-
-#char = " " if char.ord.zero?
-
-#color = "\e[#{args*';'}m"
-#print "\e7\e[#{rows+1};#{cols+1}H#{color}#{char}\e8"
 

@@ -29,7 +29,7 @@ elsif ARGV.length == 2
   assembler.write(ARGV[1])
 
   File.open(ARGV[1] + ".hex", "w") do |file|
-    file.write(assembler.dump.join("\n"))
+    file.write(assembler.to_s)
   end
 
 else

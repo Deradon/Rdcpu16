@@ -12,6 +12,7 @@ module DCPU16
 
     def run
       at_exit do
+        print @screen
         puts @cpu.to_s
       end
 

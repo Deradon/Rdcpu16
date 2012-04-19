@@ -17,17 +17,18 @@ module DCPU16
 
       def +(value)
         @value += value
+        @value &= 0xFFFF
         self
       end
 
       def -(value)
         @value -= value
+        @value &= 0xFFFF
         self
       end
 
       def write(value)
-        value = 0 if value > 0xFFFF
-        @value = value
+        @value = value & 0xFFFF
       end
 
       def reset

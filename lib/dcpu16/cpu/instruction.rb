@@ -50,6 +50,7 @@ module DCPU16
         end
       end
 
+      # TODO: what if noop found?
       def op
         @non_basic ? NON_BASIC_INSTRUCTIONS[@opcode] : INSTRUCTIONS[@opcode]
       end
