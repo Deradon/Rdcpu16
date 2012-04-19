@@ -7,6 +7,8 @@
 ;   * Clock: 100000     (Clock-Speed of CPU [defined])
 ;   *    HZ: 99999.02   (Clock-Speed of CPU [real])
 
+SET C, [0x3000]                   ; Example
+SET C, 0x2000
 SET C, 0x30                       ; Init OuterLoop
 :outer_loop SET B, 0              ; Init InnerLoop
 :inner_loop SET [0x8000+B], C     ;draw

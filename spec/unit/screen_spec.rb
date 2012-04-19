@@ -39,7 +39,7 @@ describe DCPU16::Screen do
     specify { subject.should_receive(:update).tap { memory.write(0x8000, 40) } }
     context "memory outside of screen changed" do
       specify { observer.should_not_receive(:update).tap { memory.write(0x7FFF, 40) } }
-      specify { observer.should_not_receive(:update).tap { memory.write(0x8000 + 0x180, 40) } }
+      specify { observer.should_not_receive(:update).tap { memory.write(0x8000 + 0x300, 40) } }
     end
     context "memory of screen changed" do
       pending "Disabled Observer right now!"

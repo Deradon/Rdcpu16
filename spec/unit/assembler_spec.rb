@@ -5,10 +5,11 @@ describe DCPU16::Assembler do
   subject { DCPU16::Assembler.new(asm) }
 
   its(:input) { should == asm }
-  its(:dump) { should be_a_kind_of(Array) }
+  its(:lines) { should be_a_kind_of(Array) }
   specify do
-#    puts subject.dump
-    puts subject.dump.first.bytes.length
+#    subject.lines
+    subject.assemble
+    #assert false
   end
 end
 
