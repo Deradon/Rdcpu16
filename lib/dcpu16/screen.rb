@@ -112,9 +112,7 @@ module DCPU16
   class Char
     attr_reader :output
     def initialize(value, x, y)
-      @char     = (value & 0x007F).chr
-#      @bg_color = (value >> 8) & 0x0F
-#      @fg_color = value >> 12
+      c = (value & 0x007F).chr
 
       args = []
       args << (value >> 15)
@@ -123,7 +121,7 @@ module DCPU16
         args << color_to_ansi(value >> 8)  + 40
       end
 
-      @char = " " if @char.ord.zero?
+      @char = ?c.ord.zero? ? " " : c
       @color = "\e[#{args*';'}m"
       @output = "\e7\e[#{y};#{x}H#{@color}#{@char}\e8"
     end
