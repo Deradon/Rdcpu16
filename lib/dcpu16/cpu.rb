@@ -33,7 +33,7 @@ module DCPU16
       @cycle      = 0
       @memory     = DCPU16::Memory.new(memory)
       @registers  = []
-      [:A, :B, :C, :X, :Y, :Z, :I, :J].each { |r| @registers << Register.new(0x0, r) }
+      REGISTERS.each { |r| @registers << Register.new(0x0, r) }
 
       @PC = Register.new(0x0)
       @SP = Register.new(0xFFFF)
