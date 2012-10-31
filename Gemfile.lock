@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dcpu16 (0.0.1)
+    Rdcpu16 (0.0.4.0)
 
 GEM
   remote: http://rubygems.org/
@@ -20,5 +20,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  dcpu16!
+  Rdcpu16!
   rspec (~> 2.6)
