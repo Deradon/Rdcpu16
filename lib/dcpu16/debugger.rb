@@ -7,13 +7,15 @@ module DCPU16
       @update_every = options[:update_every] || 100000
       @step_mode    = false || options[:step_mode]
 
+      @debug = options[:debug]
+      @debug = true if @debug.nil?
+
       @cpu.add_observer(self)
     end
 
     def run
       at_exit do
-        print @screen
-        puts @cpu.to_s
+        draw
       end
 
       begin
@@ -25,8 +27,7 @@ module DCPU16
             @last_step_count = a
 
             @cpu.step(a)
-            print @screen
-            print @cpu.to_s
+            draw
           end
         else
           clear_screen
@@ -46,6 +47,12 @@ module DCPU16
         print @cpu.to_s
       end
       @counter += 1
+    end
+
+    # Draw
+    def draw
+      print @screen
+      print @cpu.to_s if @debug
     end
 
     # Clears screen for output

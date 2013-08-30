@@ -21,7 +21,9 @@ if ARGV.length == 1
   end
 
   # TODO: get args from command line
-  debugger = DCPU16::Debugger.new(dump, :update_every => 10000, :step_mode => false)
+  debugger = DCPU16::Debugger.new(dump, :update_every => 10000,
+                                        :step_mode => false,
+                                        :debug => false)
   debugger.run
 elsif ARGV.length == 2
   file = File.open(ARGV[0])
