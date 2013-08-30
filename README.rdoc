@@ -7,5 +7,3 @@ This is a simple Ruby port of the fictive 16-bit-cpu DCPU16.
 
   * http://0x10c.com/
   * http://0x10cforum.com/
-
-Gitrank: http://infopoprac.r12.railsrumble.com/Deradon.png
